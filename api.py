@@ -83,7 +83,7 @@ def get_client_info(client_id):
     # CORRECTION DE L’ÂGE
     days_birth = client.get("DAYS_BIRTH")
 
-    if days_birth is not None and days_birth < 0:
+    if days_birth is not None:
         client["AGE_YEARS"] = int(abs(days_birth) // 365)
     else:
         client["AGE_YEARS"] = None

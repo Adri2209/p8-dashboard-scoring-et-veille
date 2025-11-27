@@ -80,11 +80,17 @@ def get_client_info(client_id):
 
     client = client_data.iloc[0].to_dict()
 
-    # CORRECTION DE L’ÂGE
+   # CORRECTION DE L’ÂGE (masquage des valeurs absurdes)
     days_birth = client.get("DAYS_BIRTH")
 
     if days_birth is not None:
-        client["AGE_YEARS"] = int(abs(days_birth) // 365)
+        age = int(abs(days_birth) // 365)
+
+        # On masque les âges aberrants
+        if age < 10 or age > 120:
+            client["AGE_YEARS"] = None
+        else:
+            client["AGE_YEARS"] = age
     else:
         client["AGE_YEARS"] = None
 

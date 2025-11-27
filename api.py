@@ -21,12 +21,20 @@ app = Flask(__name__)
 test_data = pd.read_csv('test_mean_sample.csv')
 train_data = pd.read_csv('train_mean_sample.csv')
 
+# =============================
+# AJOUT ÂGE RÉEL
+# =============================
+
+for df in [train_data, test_data]:
+    if "DAYS_BIRTH" in df.columns:
+        df["AGE_YEARS"] = (df["DAYS_BIRTH"].abs() / 365).round().astype("Int64")
+
 # Ajouter la colonne client_id
 train_data['client_id'] = range(1, len(train_data) + 1)
 test_data['client_id'] = range(1, len(test_data) + 1)
 
 # Séparer les features et la target dans les données d'entraînement
-X_train = train_data.drop(['TARGET', 'client_id'], axis=1)
+X_train = train_data.drop(['TARGET', 'client_id', 'AGE_YEARS'], axis=1)
 y_train = train_data['TARGET']
 
 # Appliquer le scaler et SMOTE aux données d'entraînement
@@ -69,7 +77,18 @@ def get_client_info(client_id):
     client_data = test_data[test_data['client_id'] == client_id]
     if client_data.empty:
         return jsonify({"error": "Client not found"}), 404
-    return client_data.to_dict(orient='records')[0]
+
+    client = client_data.iloc[0].to_dict()
+
+    # CORRECTION DE L’ÂGE
+    days_birth = client.get("DAYS_BIRTH")
+
+    if days_birth is not None and days_birth < 0:
+        client["AGE_YEARS"] = int(abs(days_birth) // 365)
+    else:
+        client["AGE_YEARS"] = None
+
+    return jsonify(client)
 
 @app.route('/client_info/<int:client_id>', methods=['PUT'])
 def update_client_info(client_id):
@@ -106,7 +125,7 @@ def get_prediction():
         return jsonify({"error": "Client not found"}), 404
 
     # Filtrer les colonnes inattendues
-    info_client = client_data.drop('client_id', axis=1)
+    info_client = client_data.drop(['client_id', 'AGE_YEARS'], axis=1, errors='ignore')
     
     # Appliquer les transformations et prédire
     info_client_scaled = scaler.transform(info_client)

@@ -1,0 +1,17 @@
+Flask==3.0.3
+gunicorn==21.2.0
+numpy==1.26.4
+pandas==2.1.4
+seaborn==0.13.2
+missingno==0.5.2
+matplotlib==3.8.0
+mlflow==3.1.1
+shap==0.46.0
+scikit-learn==1.2.2
+lightgbm==4.1.0
+imbalanced-learn==0.11.0
+evidently==0.4.11
+plotly==5.24.1
+joblib==1.4.2
+Werkzeug==3.0.3
+itsdangerous==2.2.0

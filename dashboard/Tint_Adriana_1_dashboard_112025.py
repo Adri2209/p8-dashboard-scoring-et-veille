@@ -24,9 +24,9 @@ except Exception:
 # CONFIGURATION
 # ============================================================
 
-API_URL = "https://implementer-un-modele-de-scoring-b6fwe6eegaamhkdh.francecentral-01.azurewebsites.net".rstrip(
-    "/"
-)
+API_URL = (
+    "https://implementer-un-modele-de-scoring-b6fwe6eegaamhkdh.francecentral-01.azurewebsites.net"
+).rstrip("/")
 THRESHOLD = 0.5  # seuil d'acceptation
 
 st.set_page_config(page_title="Dashboard de Scoring Crédit", layout="wide")
@@ -38,7 +38,6 @@ simple_mode = st.sidebar.checkbox("Mode conseiller (vue simplifiée)", value=Fal
 
 # Mode COMEX
 comex_mode = st.sidebar.checkbox("👔 Mode COMEX (vue Direction)", value=False)
-
 
 # ============================================================
 # API HELPERS
@@ -110,13 +109,12 @@ if train_df.empty:
 
 usable_columns = [c for c in train_df.columns if c not in ["TARGET", "client_id"]]
 
-
 # ============================================================
 # JAUGE MÉTIER
 # ============================================================
 
 
-def display_gauge(prob):
+def display_gauge(prob: float) -> None:
     fig = go.Figure(
         go.Indicator(
             mode="gauge+number",
@@ -207,7 +205,10 @@ if load_button:
 
 # Si aucun client chargé, on affiche juste un message et on arrête
 if not st.session_state.client_loaded:
-    st.info("Veuillez sélectionner un client puis cliquer sur **Charger / mettre à jour le client**.")
+    st.info(
+        "Veuillez sélectionner un client puis cliquer sur "
+        "**Charger / mettre à jour le client**."
+    )
     st.stop()
 
 # À partir d’ici, on est sûr d’avoir un client et une probabilité
@@ -217,7 +218,7 @@ prob = st.session_state.prob
 client_series = pd.Series(client_info)
 
 # ============================================================
-#           VUE COMEX – DASHBOARD DIRECTION (si activé)
+# VUE COMEX – DASHBOARD DIRECTION (si activé)
 # ============================================================
 
 if comex_mode:
@@ -239,10 +240,7 @@ if comex_mode:
     st.markdown("### 🎯 Positionnement du risque")
     display_gauge(prob)
 
-    # ===============================
     # ANALYSE DIRECTION / COMEX
-    # ===============================
-
     st.markdown("### 🧠 Lecture stratégique")
 
     if prob < 0.3:
@@ -251,14 +249,12 @@ if comex_mode:
             "Le profil présente un excellent niveau de solvabilité.\n"
             "L’exposition financière est jugée faible."
         )
-
     elif prob < THRESHOLD:
         st.warning(
             "⚠ **Risque maîtrisé mais à surveiller**\n\n"
             "Le client se situe proche de la zone de vigilance.\n"
             "Une validation métier complémentaire est recommandée."
         )
-
     else:
         st.error(
             "❌ **Risque financier élevé**\n\n"
@@ -266,10 +262,7 @@ if comex_mode:
             "avec la politique de crédit standard."
         )
 
-    # ===============================
     # INDICES DE CONFIANCE
-    # ===============================
-
     st.markdown("### 🔐 Indicateur de robustesse de décision")
 
     decision_confidence = int(abs(prob - THRESHOLD) * 200)
@@ -285,10 +278,7 @@ if comex_mode:
     else:
         st.error("Décision fragile – analyse humaine recommandée.")
 
-    # ===============================
     # IMPACT FINANCIER SIMPLIFIÉ
-    # ===============================
-
     st.markdown("### 💰 Lecture financière simplifiée")
 
     if prob < THRESHOLD:
@@ -304,10 +294,7 @@ if comex_mode:
             "- ❌ Rentabilité incertaine du dossier"
         )
 
-    # ===============================
     # CONCLUSION COMEX
-    # ===============================
-
     st.markdown("### 🏁 Conclusion Direction")
 
     if prob < THRESHOLD:
@@ -331,7 +318,6 @@ if comex_mode:
 st.subheader("👤 Informations client")
 
 if simple_mode:
-    # Vue simplifiée : seules quelques variables clés si disponibles
     cols_to_show = [
         col
         for col in [
@@ -349,7 +335,6 @@ if simple_mode:
     else:
         st.json(client_info)
 else:
-    # Vue complète
     st.json(client_info)
 
 # ============================================================
@@ -364,7 +349,6 @@ with col_score:
     display_gauge(prob)
 
 with col_quality:
-    # Score qualité de dossier (style score crédit)
     score_quality = int((1 - prob) * 1000)
     st.metric("Score qualité de dossier", f"{score_quality} / 1000")
 
@@ -375,9 +359,9 @@ with col_quality:
 
     st.metric("Écart au seuil", f"{abs(prob - THRESHOLD):.2%}")
 
-# ✅ SCORE DE CONFIANCE MÉTIER
+# SCORE DE CONFIANCE MÉTIER
 confidence_score = int((1 - abs(prob - THRESHOLD) / THRESHOLD) * 100)
-confidence_score = max(0, min(100, confidence_score))  # bornage sécurité
+confidence_score = max(0, min(100, confidence_score))
 
 st.markdown(
     f"🔒 **Niveau de confiance du modèle : {confidence_score}/100**\n\n"
@@ -393,16 +377,10 @@ elif confidence_score < 70:
 else:
     st.success("✅ Décision très fiable selon le modèle.")
 
-# --------------------------------------------------------
-# SCORE DE CONFIANCE DE LA DÉCISION (version seuil)
-# --------------------------------------------------------
-
+# SCORE DE CONFIANCE (version seuil)
 st.subheader("🎯 Score de confiance de la décision")
 
-# Plus la probabilité est loin du seuil, plus la décision est fiable
 confidence = abs(prob - THRESHOLD)
-
-# Transformation métier en score 0–100
 confidence_score2 = min(100, int(confidence * 200))
 
 st.metric("Niveau de confiance", f"{confidence_score2} / 100")
@@ -485,7 +463,6 @@ else:
         "ou d'autres garanties."
     )
 
-# Suggestions génériques
 if "AMT_INCOME_TOTAL" in client_series.index and "AMT_CREDIT" in client_series.index:
     revenus = client_series["AMT_INCOME_TOTAL"]
     credit = client_series["AMT_CREDIT"]
@@ -498,7 +475,7 @@ if "AMT_INCOME_TOTAL" in client_series.index and "AMT_CREDIT" in client_series.i
 
 if "DAYS_EMPLOYED" in client_series.index:
     days_emp = client_series["DAYS_EMPLOYED"]
-    if days_emp is not None and days_emp > -365:  # < 1 an d'ancienneté
+    if days_emp is not None and days_emp > -365:
         recommandations.append(
             "L'ancienneté professionnelle est faible. Il peut être pertinent "
             "de demander des justificatifs supplémentaires (CDI, période d'essai, etc.)."
@@ -561,19 +538,16 @@ if not simple_mode:
 
 st.subheader("📈 Comparaison avec la population globale")
 
-# On récupère la valeur précédente si elle existe, sinon la première variable
 default_feature = st.session_state.get("feature", usable_columns[0])
 
 feature = st.selectbox(
     "Variable à comparer",
     usable_columns,
     index=usable_columns.index(default_feature),
-    key="feature",  # Streamlit mettra à jour st.session_state["feature"] automatiquement
+    key="feature",
 )
 
-fig_hist = px.histogram(
-    train_df, x=feature, title=f"Distribution de {feature}"
-)
+fig_hist = px.histogram(train_df, x=feature, title=f"Distribution de {feature}")
 if feature in client_series.index:
     fig_hist.add_vline(
         x=client_series[feature],
@@ -585,10 +559,7 @@ if feature in client_series.index:
 fig_hist.update_layout(title_x=0.5)
 st.plotly_chart(fig_hist, use_container_width=True)
 
-# --------------------------------------------------------
 # ANALYSE PERCENTILE CLIENT
-# --------------------------------------------------------
-
 st.subheader("📊 Position du client dans la population")
 
 if feature in train_df.columns and feature in client_series.index:
@@ -612,12 +583,11 @@ if feature in train_df.columns and feature in client_series.index:
     )
 
 # ============================================================
-# 6.b Analyse bi-variée avancée (ROBUSTE & PRO)
+# 6.b Analyse bi-variée avancée
 # ============================================================
 
 st.subheader("🔍 Analyse bi-variée avancée (corrélation, densité & atypie)")
 
-# === Valeur par défaut pour X ===
 default_x = st.session_state.get("bivar_x", usable_columns[0])
 
 var_x = st.selectbox(
@@ -627,7 +597,6 @@ var_x = st.selectbox(
     key="bivar_x",
 )
 
-# === Variables possibles pour Y (différente de X) ===
 usable_y = [v for v in usable_columns if v != var_x]
 if not usable_y:
     st.warning("Pas assez de variables pour une analyse bi-variée.")
@@ -644,29 +613,21 @@ var_y = st.selectbox(
     key="bivar_y",
 )
 
-# ❗ IMPORTANT : NE RIEN RAJOUTER ICI
-# 👉 Plus de st.session_state.bivar_x = ... , plus jamais !
-# Le selectbox met à jour les valeurs automatiquement.
-
-# === SÉCURITÉ CLIENT ===
 if var_x not in client_series.index or var_y not in client_series.index:
     st.error("Variables non disponibles pour ce client.")
 else:
-    # === DATA CLEAN ===
     df_bi = train_df[[var_x, var_y, "TARGET"]].dropna().copy()
     df_bi["Risque"] = df_bi["TARGET"].map({0: "Bon payeur", 1: "Défaut"})
 
     x_val = client_series[var_x]
     y_val = client_series[var_y]
 
-    # === CORRÉLATION ===
     corr = df_bi[var_x].corr(df_bi[var_y])
     if pd.isna(corr):
         st.warning("Corrélation non calculable (données constantes ou invalides).")
     else:
         st.metric("Corrélation (Pearson)", f"{corr:.2f}")
 
-        # === SCATTER PRINCIPAL ===
         fig = px.scatter(
             df_bi,
             x=var_x,
@@ -687,14 +648,12 @@ else:
 
         st.plotly_chart(fig, use_container_width=True)
 
-        # === Z-SCORE ATYPIE ===
         def zscore(v, s):
             return (v - s.mean()) / s.std()
 
         z_x = zscore(x_val, df_bi[var_x])
         z_y = zscore(y_val, df_bi[var_y])
 
-        # === ZOOM LOCAL ===
         st.markdown("### 🔎 Zone locale client")
 
         dx = df_bi[var_x].std()
@@ -723,7 +682,6 @@ else:
 
         st.plotly_chart(fig_zoom, use_container_width=True)
 
-        # === DENSITÉ ===
         st.markdown("### 📊 Densité de population")
 
         fig_density = px.density_contour(
@@ -740,7 +698,6 @@ else:
 
         st.plotly_chart(fig_density, use_container_width=True)
 
-        # === ATYPIE TEXTE ===
         st.subheader("🚨 Détection d’atypie")
 
         for v, z in [(var_x, z_x), (var_y, z_y)]:
@@ -751,7 +708,6 @@ else:
             else:
                 st.success(f"{v} dans la norme (z={z:.2f})")
 
-        # === INTERPRÉTATION MÉTIER ===
         st.subheader("🧠 Lecture automatique")
 
         force = (
@@ -776,7 +732,6 @@ else:
         else:
             st.success("Profil cohérent avec la population.")
 
-        # === PROFILS SIMILAIRES ===
         st.subheader("👥 Comparaison aux profils proches")
 
         st.metric("Profils similaires détectés", len(zone))
@@ -848,9 +803,13 @@ if variables:
             diff = abs(client_row_train[var] - similar[var].mean())
             std = similar[var].std()
             if pd.notna(std) and std != 0 and diff > std:
-                st.warning(f"⚠ **{var}** est atypique par rapport aux profils similaires.")
+                st.warning(
+                    f"⚠ **{var}** est atypique par rapport aux profils similaires."
+                )
             else:
-                st.success(f"✅ **{var}** est cohérent avec les profils similaires.")
+                st.success(
+                    f"✅ **{var}** est cohérent avec les profils similaires."
+                )
         except Exception:
             pass
 
@@ -880,12 +839,11 @@ radar_vars = st.multiselect(
 )
 
 if radar_vars:
-    # On normalise les valeurs entre 0 et 1 pour comparer
     radar_df = train_df[radar_vars].copy()
     radar_min = radar_df.min()
     radar_max = radar_df.max()
     radar_range = radar_max - radar_min
-    radar_range[radar_range == 0] = 1  # évite division par zéro
+    radar_range[radar_range == 0] = 1
 
     client_vals = (client_series[radar_vars] - radar_min) / radar_range
     pop_mean = (radar_df.mean() - radar_min) / radar_range
